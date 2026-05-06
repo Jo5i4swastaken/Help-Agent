@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://help-agent.dev/schemas/capability-manifest/1.0.json",
+  "title": "Capability Manifest",
+  "description": "Industry-agnostic contract between the build-time Onboarding Agent and the runtime Help-Agent Service. Describes the capabilities of a customer app: roles, entities, actions, routes, glossary, and KB configuration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "app", "roles", "entities", "actions", "routes", "glossary", "kb"],
+  "properties": {
+    "schemaVersion": {
+      "description": "Pinned manifest schema version. Any breaking change to the contract requires a major bump and a coordinated release across onboarding + runtime.",
+      "const": "1.0"
+    },
+    "app": { "$ref": "#/$defs/app" },
+    "roles": {
+      "type": "array",
+      "description": "User roles known to the app, with their permission scopes.",
+      "items": { "$ref": "#/$defs/role" }
+    },
+    "entities": {
+      "type": "array",
+      "description": "Domain entities the app manages (e.g., Booking, Invoice, Client).",
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "actions": {
+      "type": "array",
+      "description": "Discrete user actions the app exposes. Each action is grounded by a verb, a target entity, a route, and the roles required to perform it.",
+      "items": { "$ref": "#/$defs/action" }
+    },
+    "routes": {
+      "type": "array",
+      "description": "Top-level routes/screens the user can navigate to. Used by the runtime agent to localize guidance against the user's current route.",
+      "items": { "$ref": "#/$defs/route" }
+    },
+    "glossary": {
+      "type": "array",
+      "description": "Domain-specific vocabulary the agent should understand and use.",
+      "items": { "$ref": "#/$defs/glossaryEntry" }
+    },
+    "kb": { "$ref": "#/$defs/kbConfig" }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "description": "Snake-case identifier (lowercase ASCII, digits, underscores; must start with a letter).",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "fieldType": {
+      "description": "A primitive scalar type, or a `ref:<entityId>` reference to another entity defined in this manifest. The referenced entityId must follow the snake-case identifier pattern.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["string", "number", "boolean", "datetime", "date", "url", "email"]
+        },
+        {
+          "type": "string",
+          "pattern": "^ref:[a-z][a-z0-9_]*$"
+        }
+      ]
+    },
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable identifier for the customer app (e.g., 'salon-pro')."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-friendly name displayed to end users."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "App version string (typically semver). Used for ticket payloads and KB matching."
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional domain tag for grouping (e.g., 'salon-booking', 'invoicing')."
+        }
+      }
+    },
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "permissions"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-friendly role label."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "Permission scopes for this role. '*' grants all; '<entity>.*' grants all on an entity; '<entity>.<verb>' grants a single verb.",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "labelPlural"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Singular human label (e.g., 'Booking')."
+        },
+        "labelPlural": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Plural human label (e.g., 'Bookings')."
+        },
+        "synonyms": {
+          "type": "array",
+          "description": "Alternative terms users might use for this entity (e.g., 'appointment', 'reservation').",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "fields": {
+          "type": "array",
+          "description": "Fields on the entity that the agent should understand for guidance and validation hints.",
+          "items": { "$ref": "#/$defs/field" }
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-friendly field label."
+        },
+        "type": { "$ref": "#/$defs/fieldType" },
+        "required": {
+          "type": "boolean",
+          "description": "Whether the field is required when creating/updating the entity."
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "entity", "verb", "route", "requiredRoles"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-friendly action label (e.g., 'Create a booking')."
+        },
+        "entity": {
+          "description": "ID of the entity this action operates on. Must cross-reference an entry in entities[].id (not enforced by schema).",
+          "$ref": "#/$defs/id"
+        },
+        "verb": {
+          "type": "string",
+          "enum": ["create", "read", "update", "delete", "list", "export", "import", "other"],
+          "description": "Verb classifying the action."
+        },
+        "route": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^/",
+          "description": "App route where this action is performed."
+        },
+        "requiredRoles": {
+          "type": "array",
+          "description": "Role IDs allowed to perform the action. Cross-references roles[].id (not enforced by schema).",
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "preconditions": {
+          "type": "array",
+          "description": "Human-readable preconditions the agent should mention before guiding the user.",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "deepLink": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional free-form path with optional query and template tokens (e.g., '/bookings/new?prefill={...}'). Template tokens are app-specific and are interpreted by the runtime widget."
+        }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "title"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^/",
+          "description": "Route path (must start with '/'). Supports framework-specific param syntax (e.g., '/bookings/:id')."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-friendly route title."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short description of what this route shows or does."
+        },
+        "entity": {
+          "description": "Optional primary entity rendered on this route. Cross-references entities[].id (not enforced by schema).",
+          "$ref": "#/$defs/id"
+        },
+        "primaryActions": {
+          "type": "array",
+          "description": "Primary action IDs available on this route. Cross-references actions[].id (not enforced by schema).",
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "glossaryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["term", "definition"],
+      "properties": {
+        "term": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Domain term as users say it."
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Plain-language definition."
+        }
+      }
+    },
+    "kbConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["docsPath", "indexFormat"],
+      "properties": {
+        "docsPath": {
+          "type": "string",
+          "minLength": 1,
+          "default": "docs/help/",
+          "description": "Path (relative to the customer app repo root) where help markdown lives."
+        },
+        "indexFormat": {
+          "type": "string",
+          "enum": ["frontmatter+keyword"],
+          "description": "KB index format. 'frontmatter+keyword' is the only MVP format; the enum is left open for future formats."
+        }
+      }
+    }
+  }
+}

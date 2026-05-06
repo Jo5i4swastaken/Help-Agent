@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/help-agent-manifest" },
+    { "path": "./packages/help-agent-protocol" }
+  ]
+}

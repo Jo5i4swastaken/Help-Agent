@@ -1,0 +1,7 @@
+{
+  "name": "@help-agent/service",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runtime Help-Agent backend service (HTTP + SSE). Implemented in Phase 2.",
+  "license": "UNLICENSED"
+}

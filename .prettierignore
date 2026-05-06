@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+coverage
+*.tsbuildinfo
+pnpm-lock.yaml
+
+# Source-of-truth design doc — preserve as authored.
+HELP_AGENT_PLAN.md

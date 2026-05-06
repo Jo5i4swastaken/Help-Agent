@@ -1,0 +1,31 @@
+{
+  "name": "@help-agent/protocol",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HTTP + SSE shared TypeScript types for the widget <-> service contract: /v1/help/message, /v1/help/stream, /v1/help/escalate, /v1/tickets, ContextSnapshot, and the SSE event union.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "dependencies": {
+    "@help-agent/manifest": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.6.2"
+  }
+}

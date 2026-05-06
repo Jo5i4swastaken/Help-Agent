@@ -1,0 +1,36 @@
+{
+  "name": "@help-agent/manifest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capability Manifest: JSON Schema (Draft 2020-12) + TypeScript types + validate() helper. The contract between the build-time Onboarding Agent and the runtime Help-Agent Service.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema.json": "./schema.json"
+  },
+  "files": [
+    "dist",
+    "schema.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.2"
+  }
+}
