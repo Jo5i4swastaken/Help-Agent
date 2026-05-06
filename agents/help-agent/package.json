@@ -1,7 +1,0 @@
-{
-  "name": "@help-agent/agent",
-  "version": "0.0.0",
-  "private": true,
-  "description": "OmniAgents runtime config + instructions + tools for Help-Agent. Implemented in Phase 5.",
-  "license": "UNLICENSED"
-}
